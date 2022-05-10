@@ -6,6 +6,5 @@ RUN Rscript -e "BiocManager::install(c(\
     'gganimate', \
     'gghighlight', \
     'MetBrewer', \
-    'ggrepel', \
-	'ggedit'\
+    'ggrepel'\
     ))"
