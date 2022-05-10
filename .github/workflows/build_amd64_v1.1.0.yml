@@ -67,6 +67,6 @@ jobs:
         run: |
           IMAGE=${REGISTRY}/${IMAGE_NAME}:${VERSION}
           docker run -d --name rstudio -p 8787:8787 -e DISABLE_AUTH=true $IMAGE
-          docker exec -it rstudio Rscript -e "library(knitr)"
-          docker exec -it rstudio Rscript -e "library(plotly)"
-          docker exec -it rstudio Rscript -e "library(esquisse)"
+          docker exec rstudio Rscript -e "library(knitr)"
+          docker exec rstudio Rscript -e "library(plotly)"
+          docker exec rstudio Rscript -e "library(esquisse)"
