@@ -41,3 +41,6 @@ vignettes/*.pdf
 ## local rmd files used for deployment
 .R
 .Rmd
+
+### Mac files
+.DS_Store
