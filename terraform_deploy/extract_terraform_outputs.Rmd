@@ -1,0 +1,118 @@
+---
+title: "Collect Terraform Outputs"
+author: "Francesco Lescai"
+date: "01/02/2022"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+/*
+https://myaccount.google.com/lesssecureapps?rapt=AEjHL4PPTtBOvRJqALIj2JUA6HxiqcsZcn5aPj0tF-c6MRpk6sJoSKQ6etrrP79JxDq90qVRKVQrtcIKwou8DiueKqxbZWEt5w
+*/
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyjson)
+library(tidyverse)
+library(blastula)
+setwd("~/Google Drive/Didattica_LEZIONI/CODE_TEACHING/deploy_docker_exams/exam_vm_general/")
+```
+
+
+# Import TFstate JSON file
+
+```{r import}
+## system("cp ~/Google\ Drive/Didattica_LEZIONI/CODE_TEACHING/deploy_docker_exams/exam_vm_general/terraform.tfstate today_credentials.json")
+tfstate <- read_json("/Users/lescai/Google Drive/Didattica_LEZIONI/CODE_TEACHING/deploy_docker_exams/exam_vm_general/today_credentials.json")
+outputs <- tibble(
+  instance_id = unlist(tfstate$..JSON[[1]]$outputs$instance_id$value[[1]]),
+  instance_ip = unlist(tfstate$..JSON[[1]]$outputs$instance_public_ip$value[[1]])
+)
+```
+
+
+
+# Combine with emails
+
+
+```{r combine}
+# students <- tibble(
+#   name = c("Francesco Lescai"),
+#   email = c("francesco.lescai@unipv.it")
+# )
+
+students <- read_tsv("/Users/lescai/Google Drive/Didattica_LEZIONI/501554_BIOINFORMATICA_LM-BiologiaSperimentaleApplicata/esame/appello_20220228/studenti_20220228.txt")
+
+data <- cbind(outputs, students)
+
+```
+
+
+
+# Send email information
+
+
+```{r email_body}
+
+write_email <- function(row){
+  name = unname(row[["name"]])
+  email = unname(row[["email"]])
+  ip_address = unname(row[["instance_ip"]])
+  email_ad = compose_email(
+                header = md(
+                  c(
+                    "# Insegnamento di Bioinformatica",
+                    "## Biologia Sperimentale e Applicata"
+                  )
+                ),
+                body = md(
+                          c(
+                            paste0("Gentile ", name),
+                            "",
+                            "Per svolgere l'esercitazione dell'esame puoi connetterti al seguente indirizzo IP:",
+                            "",
+                            paste0("virtual machine ip = ", ip_address),
+                            "",
+                            "",
+                            "Questo significa che per usare il container VScode, devi connetterti alla URL:",
+                            "",
+                            paste0(ip_address,":8443"),
+                            "",
+                            "non sarà necessaria alcuna password.",
+                            "",
+                            "",
+                            "Per usare invece il container RStudio, dovrai usare la URL:",
+                            "",
+                            paste0(ip_address,":8787"),
+                            "",
+                            "Anche in questo caso senza password.",
+                            "",
+                            "",
+                            "",
+                            "Per collegarti alla virtual machine puoi usare sia UNIPV-WIFI che eduroam.",
+                            "",
+                            "**Questo indirizzo è valido esclusivamente oggi e per il tempo assegnato alla parte scritta dell'esame**"
+                          )
+                  ),
+                  footer = md(
+                    "Questa mail è inviata per conto del Corso di Laurea Magistrale in Biologia Sperimentale e Applicata"
+                  )
+  )
+  
+  email_ad %>%
+      smtp_send(
+        to = email,
+        from = "francesco.lescai@unipv.it",
+        subject = "Esame di Bioinformatica - credenziali della VM",
+        credentials = creds_file("/Users/lescai/Google Drive/Didattica_LEZIONI/SummerSchool_2021_Virology/smtp_file")
+      )
+}
+
+```
+
+
+```{r send}
+apply(data, 1, write_email)
+```
+
