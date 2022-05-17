@@ -44,3 +44,8 @@ vignettes/*.pdf
 
 ### Mac files
 .DS_Store
+
+#### terraform results
+*.terraform*
+*terraform.tfstate*
+*.plan

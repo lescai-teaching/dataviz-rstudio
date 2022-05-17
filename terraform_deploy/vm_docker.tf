@@ -33,7 +33,7 @@ resource "aws_instance" "examvm" {
 
     tags = {
       "Unit" = "DBB"
-      "Project" = "exams"
+      "Project" = "Retreat"
       "Owner" = "lescai"
     }
 
