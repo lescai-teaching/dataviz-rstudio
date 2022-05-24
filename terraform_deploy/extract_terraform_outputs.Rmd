@@ -16,15 +16,15 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyjson)
 library(tidyverse)
 library(blastula)
-setwd("~/Google Drive/Didattica_LEZIONI/CODE_TEACHING/deploy_docker_exams/exam_vm_general/")
+setwd("~/Google Drive/Didattica_LEZIONI/CODE_TEACHING/dataviz-rstudio/terraform_deploy")
 ```
 
 
 # Import TFstate JSON file
 
 ```{r import}
-## system("cp ~/Google\ Drive/Didattica_LEZIONI/CODE_TEACHING/deploy_docker_exams/exam_vm_general/terraform.tfstate today_credentials.json")
-tfstate <- read_json("/Users/lescai/Google Drive/Didattica_LEZIONI/CODE_TEACHING/deploy_docker_exams/exam_vm_general/today_credentials.json")
+## system("cp terraform.tfstate today_credentials.json")
+tfstate <- read_json("today_credentials.json")
 outputs <- tibble(
   instance_id = unlist(tfstate$..JSON[[1]]$outputs$instance_id$value[[1]]),
   instance_ip = unlist(tfstate$..JSON[[1]]$outputs$instance_public_ip$value[[1]])
@@ -42,7 +42,11 @@ outputs <- tibble(
 #   email = c("francesco.lescai@unipv.it")
 # )
 
-students <- read_tsv("/Users/lescai/Google Drive/Didattica_LEZIONI/501554_BIOINFORMATICA_LM-BiologiaSperimentaleApplicata/esame/appello_20220228/studenti_20220228.txt")
+students <- read_tsv("/Users/lescai/Google Drive/Dottorato_Genetica-BioMol-Cell/retreat_2022/retreat_students.tsv",
+                     col_names = c("name", "email"))
+
+# students <- read_tsv("/Users/lescai/Google Drive/Dottorato_Genetica-BioMol-Cell/retreat_2022/retreat_test.tsv",
+#                      col_names = c("name", "email"))
 
 data <- cbind(outputs, students)
 
@@ -62,41 +66,37 @@ write_email <- function(row){
   email_ad = compose_email(
                 header = md(
                   c(
-                    "# Insegnamento di Bioinformatica",
-                    "## Biologia Sperimentale e Applicata"
+                    "# Ph.D. Program",
+                    "## Genetics, Molecular and Cellular Biology"
                   )
                 ),
                 body = md(
                           c(
-                            paste0("Gentile ", name),
+                            paste0("Dear ", name),
                             "",
-                            "Per svolgere l'esercitazione dell'esame puoi connetterti al seguente indirizzo IP:",
-                            "",
-                            paste0("virtual machine ip = ", ip_address),
-                            "",
-                            "",
-                            "Questo significa che per usare il container VScode, devi connetterti alla URL:",
-                            "",
-                            paste0(ip_address,":8443"),
-                            "",
-                            "non sarà necessaria alcuna password.",
-                            "",
-                            "",
-                            "Per usare invece il container RStudio, dovrai usare la URL:",
+                            "To participate in the second part of today's Dataviz Workshop, you can use the following URL:",
                             "",
                             paste0(ip_address,":8787"),
                             "",
-                            "Anche in questo caso senza password.",
+                            "There is no need for any password.",
+                            "",
+                            "**Please note: should the internet connection be too slow, we will work in groups since the beginning.**",
                             "",
                             "",
                             "",
-                            "Per collegarti alla virtual machine puoi usare sia UNIPV-WIFI che eduroam.",
+                            "During the workshop we will use two datasets, at the following addresses:",
                             "",
-                            "**Questo indirizzo è valido esclusivamente oggi e per il tempo assegnato alla parte scritta dell'esame**"
+                            "dataset 1: https://raw.githubusercontent.com/lescai-teaching/dataviz-rstudio/datasets/mental-heath-in-tech-2016_20161114.csv",
+                            "",
+                            "dataset 2: https://raw.githubusercontent.com/lescai-teaching/dataviz-rstudio/datasets/music_sales_history.csv",
+                            "",
+                            "",
+                            "",
+                            "**This virtual machine will only be active today, for the duration of the workshop**"
                           )
                   ),
                   footer = md(
-                    "Questa mail è inviata per conto del Corso di Laurea Magistrale in Biologia Sperimentale e Applicata"
+                    "This email is sent on behalf of the University of Pavia, Ph.D Program in Genetics, Molecular and Cellular Biology."
                   )
   )
   
@@ -104,7 +104,7 @@ write_email <- function(row){
       smtp_send(
         to = email,
         from = "francesco.lescai@unipv.it",
-        subject = "Esame di Bioinformatica - credenziali della VM",
+        subject = "Dataviz Workshop - your VM credentials",
         credentials = creds_file("/Users/lescai/Google Drive/Didattica_LEZIONI/SummerSchool_2021_Virology/smtp_file")
       )
 }
